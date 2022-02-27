@@ -10,6 +10,61 @@ const PENDING = "PENDING";
 const RESOLVED = "RESOVLED";
 const REJECTED = "REJECTED";
 
+function commonResolve(promise2, x, resolve, reject) {
+
+    if (promise2 === x) {
+        // 避免形成 let promise2 = xxx.then(()=> return promise2)的循环嵌套情况
+        return reject(new TypeError("Chaining cycle detected for promise #<Promise>"));
+    }
+
+    if (typeof x === "object" && x !== null || typeof x === "function") {
+        // 内部测试时，成功和失败会同时调用，因此得阻止不同状态的变化
+        let called;
+        try {
+            let then = x.then;
+            if (typeof then !== "function") {
+                // then的两个params就是onfulfilled, onrejected两个函数
+                then.call(x, (y) => {
+                    // resolve(y); // 考虑可能存在y也是一个Promise的情况，因此得递归
+                    if (called) {
+                        return;
+                    }
+                    called = true;
+                    commonResolve(promise2, y, resolve, reject);
+                }, (r) => {
+                    if (called) {
+                        return;
+                    }
+                    called = true;
+                    reject(r);
+                });
+            } else {
+                // then不是function就是object，如果是object，直接返回结果
+                if (called) {
+                    return;
+                }
+                called = true;
+                resolve(x);
+            }
+        } catch (e) {
+            // 为了兼容，可能有些人的then是通过Object.defineProperty定义的get然后get方法返回错误，会报错，直接返回reject
+            if (called) {
+                return;
+            }
+            called = true;
+            reject(e);
+        }
+    } else {
+        if (called) {
+            return;
+        }
+        called = true;
+        // 基本类型
+        resolve(x);
+    }
+
+}
+
 class MyPromise {
     // 三种状态
     // 处理同步和异步的情况
@@ -52,25 +107,50 @@ class MyPromise {
 
 
     then(onfulfilled, onrejected) {
-        // 同步的情况，也就是new Promise中的function执行完成后马上调用then方法
-        if (this.status === RESOLVED) {
-            onfulfilled(this.value);
-        }
 
-        if (this.status === REJECTED) {
-            onrejected(this.reason);
-        }
+        let promise2 = new MyPromise((resolve, reject) => {
+            // 同步的情况，也就是new Promise中的function执行完成后马上调用then方法
+            if (this.status === RESOLVED) {
 
-        // 异步的情况，也就是new Promise可能没有马上返回resolve/reject，导致状态是pending
-        if (this.status === PENDING) {
-            this.resolveCallback.push(() => {
-                onfulfilled(this.value);
-            });
+                // 异步处理为了拿到promise2这个对象
+                setTimeout(() => {
+                    // 根promise进行resolve()的调用
+                    let x = onfulfilled(this.value); // 返回的可能是一个promise,使用公共的方法处理
+                    commonResolve(promise2, x, resolve, reject);
+                }, 0);
 
-            this.rejectCallback.push(() => {
+            }
+
+            if (this.status === REJECTED) {
+
+                // 根promise进行reject()的调用
                 onrejected(this.reason);
-            });
-        }
+            }
+
+            // 异步的情况，也就是new Promise可能没有马上返回resolve/reject，导致状态是pending
+            if (this.status === PENDING) {
+                this.resolveCallback.push(() => {
+                    // 异步处理为了拿到promise2这个对象
+                    setTimeout(() => {
+                        // 由于error不能在异步中捕获，因此还需要再加个try-catch
+                        try {
+                            // 根promise进行resolve()的调用
+                            let x = onfulfilled(this.value); // 返回的可能是一个promise,使用公共的方法处理
+                            commonResolve(promise2, x, resolve, reject);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }, 0);
+                });
+
+                this.rejectCallback.push(() => {
+                    onrejected(this.reason);
+                });
+            }
+        });
+
+
+        return promise2;
     }
 
 }
