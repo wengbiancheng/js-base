@@ -40,10 +40,6 @@ function commonResolve(promise2, x, resolve, reject) {
                 });
             } else {
                 // then不是function就是object，如果是object，直接返回结果
-                if (called) {
-                    return;
-                }
-                called = true;
                 resolve(x);
             }
         } catch (e) {
