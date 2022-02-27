@@ -163,7 +163,7 @@ const isPromise = (p) => {
     return false;
 }
 
-MyPromise.prototype.all = function (array) {
+MyPromise.all = function (array) {
     return new MyPromise((resolve, reject) => {
         let results = [];
         let index = 0;
@@ -187,6 +187,8 @@ MyPromise.prototype.all = function (array) {
         }
     });
 }
+
+module.exports = MyPromise;
 
 // ----------------------- Promise -----------------------
 
