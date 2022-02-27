@@ -55,10 +55,6 @@ function commonResolve(promise2, x, resolve, reject) {
             reject(e);
         }
     } else {
-        if (called) {
-            return;
-        }
-        called = true;
         // 基本类型
         resolve(x);
     }
