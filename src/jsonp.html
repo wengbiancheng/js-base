@@ -1,0 +1,56 @@
+<!-- jsonDemo.html -->
+<html>
+
+<head>
+    <title>jsonp_demo</title>
+</head>
+
+<body>
+    <script>
+        // 本地服务器手写
+
+        function isObject(data) {
+            return Object.prototype.toString.call(data) === "[object Object]";
+        }
+
+        function jsonp(url, params, fn) {
+
+            let finalUrl = url;
+            let paramsArray = [];
+            // 拼接参数，形成url
+            if (params && isObject(params)) {
+                Object.keys(params).forEach(key => {
+                    paramsArray.push(key + "=" + encodeURIComponent(params[key]));
+                });
+            }
+
+            // 注册全局的callBack方法
+            const callBackName = "callback" + new Date().getTime();
+            paramsArray.push("callback=" + callBackName);
+
+            finalUrl = finalUrl + "?" + paramsArray.join("&");
+
+
+            const scriptEle = document.createElement("script");
+            scriptEle.src = finalUrl;
+            window[callBackName] = function (data) {
+                document.body.removeChild(scriptEle);
+                fn(data);
+            }
+
+            document.body.appendChild(scriptEle);
+        }
+
+
+        jsonp("http://localhost:3002", {
+            test: 1,
+            map: 2
+        }, (data) => {
+            console.warn("3002的值是", data);
+        });
+
+
+    </script>
+</body>
+
+</html>
