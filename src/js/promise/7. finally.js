@@ -96,6 +96,7 @@ class MyPromise {
         this.rejectCallback = [];
 
         let resolved = (value) => {
+            // value也有可能是promise呀！
             if (this.status === PENDING) {
                 this.status = RESOLVED;
                 this.value = value;
@@ -264,4 +265,23 @@ MyPromise.finally = function (cb) {
         // 可能是finally只是一个then或者catch的中转，最终finally前面是then还是catch，finally后面就是前面一样的then和catch，因此直接MyPromise.resolve(cb()).then即可
         MyPromise.resolve(cb()).then(() => { throw error; })
     });
+}
+
+// 使用nectTick代替setTimeout，因为真实Promise是微任务
+const nextTick = (fn) => {
+    if (process !== undefined && typeof process.nextTick === "function") {
+        // node.js环境
+        return process.nextTick(fn);
+    } else {
+        // 浏览器环境，用MutationObserver实现浏览器上的nextTick
+        let counter = 1;
+        const observer = new MutationObserver(fn);
+        let textNode = document.createTextNode(String(counter));
+
+        observer.observe(textNode, {
+            characterData: true,
+        });
+        counter += 1;
+        textNode.data = String(counter);
+    }
 }

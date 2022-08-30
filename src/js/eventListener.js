@@ -1,7 +1,7 @@
 // 事件捕获：事件从最外层触发，直到找到最具体的元素。
 // 如上面的代码，在事件捕获下，如果点击p标签，click 事件的顺序应该是 document->html->body->div->p
 
-//事件冒泡：事件会从最内层的元素开始发生，一直向上传播，知道触发 document 对象。
+// 事件冒泡：事件会从最内层的元素开始发生，一直向上传播，直到触发 document 对象。
 // 因此在事件冒泡下，p 元素发生 click 事件的顺序为 p->div->body->html->document
 
 // element.addEventListener(event, function, useCapture)
