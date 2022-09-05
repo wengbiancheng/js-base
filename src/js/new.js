@@ -41,6 +41,7 @@ const mockCall = function (context, ...args) {
     // 传递的参数args是一个一个传递过来的，也就是 call(this, a, b, c);
     context = context || window;
 
+    // TODO 这里得到的args是参数的数组形式
 
     // 需不需要判断context是不是对象呢？？因为context.key需要context是一个对象
 
@@ -53,7 +54,7 @@ const mockCall = function (context, ...args) {
         return result;
     }
 
-    // TODO 这里的args不是数组吗？？？那...args是什么？？数组？还是类数组
+    // TODO 将args数组转化为(a, b, c, d)的形式
     const result = context[key](...args);
 
     delete context[key];
