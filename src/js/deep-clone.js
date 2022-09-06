@@ -110,7 +110,7 @@ function cloneReg(target) {
     const result = new target.constructor(source, reFlags.exec(target));
     // target可能用了/g，那么lastIndex将决定它下一次开始匹配的index值
     result.lastIndex = target.lastIndex;
-    return
+    return result;
 }
 
 function cloneSymbol(target) {
@@ -141,7 +141,7 @@ function cloneFunction(target) {
         const body = bodyReg.exec(funcString);
         if (body) {
             if (params) {
-                const paramsArray = params.split(",");
+                const paramsArray = params[0].split(",");
                 // new Function，使用字符串创建方法，不懂可以看：https://zh.javascript.info/new-function
                 // let temp = new Function(["a","b"], "return a+b;")这两种写法都可以
                 // let temp = new Function("a","b", "return a+b;")这两种写法都可以
