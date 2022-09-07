@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+</body>
+
+<script>
+
+    function isObject(data) {
+        return Object.prototype.toString.call(data) === "[object Object]";
+    }
+
+    // 模拟jsonp的GET请求
+    function jsonp(url, data, fn) {
+        let scriptElement = document.createElement("script");
+
+        let callBackName = "callback" + new Date().getTime();
+        window[callBackName] = function (data) {
+            document.body.removeChild(scriptElement);
+            fn && fn(data);
+        }
+
+        const paramsArray = [];
+        if (isObject(data)) {
+            Object.keys(data).forEach(key => {
+                paramsArray.push(key + "=" + data[key]);
+            });
+        }
+        paramsArray.push("callback=" + callBackName);
+
+
+        // 塞入数据+全局调用的名称
+        scriptElement.url = "?" + paramsArray.join("&");
+        // scriptElement.onload = () => {
+        //     // 获取数据完成，会自动调用window[callBackName]
+        //     document.body.removeChild(scriptElement);
+        // }
+
+        document.body.appendChild(scriptElement);
+    }
+
+
+    jsonp("http://127.0.0.1:8000", {
+        test: 1,
+        data: 32
+    }, (event) => {
+
+    });
+</script>
+
+</html>

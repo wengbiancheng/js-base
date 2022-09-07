@@ -15,7 +15,9 @@ class MyPromise {
     constructor(executor) {
 
         this.status = PENDING;
+        // 为了executor方法马上执行，也就是同步的情况能够马上回调接口，传输数据value
         this.value = undefined;
+        // 为了executor方法马上执行，也就是同步的情况能够马上回调接口，传输数据value
         this.reason = undefined;
 
         this.resolveCallback = [];
@@ -26,7 +28,7 @@ class MyPromise {
                 this.status = RESOLVED;
                 this.value = value;
 
-                this.resolveCallback.forEach(fn => fn());
+                this.resolveCallback.forEach(fn => fn(value));
             }
         }
 
@@ -35,7 +37,7 @@ class MyPromise {
                 this.status = REJECTED;
                 this.reason = reason;
 
-                this.rejectCallback.forEach(fn => fn());
+                this.rejectCallback.forEach(fn => fn(reason));
             }
         }
 
@@ -60,12 +62,12 @@ class MyPromise {
 
         // 异步的情况，也就是new Promise可能没有马上返回resolve/reject，导致状态是pending
         if (this.status === PENDING) {
-            this.resolveCallback.push(() => {
-                onfulfilled(this.value);
+            this.resolveCallback.push((value) => {
+                onfulfilled(value);
             });
 
-            this.rejectCallback.push(() => {
-                onrejected(this.reason);
+            this.rejectCallback.push((reason) => {
+                onrejected(reason);
             });
         }
     }
